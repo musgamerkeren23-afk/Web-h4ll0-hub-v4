@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>H4ll0 W0rld — Key System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0606;
+    --bg-panel:#120a0b;
+    --red:#961419;
+    --red-bright:#e63946;
+    --text:#e8e4e4;
+    --muted:#7a6f6f;
+    --line:#2a1416;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Share Tech Mono', monospace;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+    position:relative;
+    overflow-x:hidden;
+  }
+
+  /* scanline + noise overlay */
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background:repeating-linear-gradient(
+      0deg, rgba(255,255,255,0.025) 0px, rgba(255,255,255,0.025) 1px,
+      transparent 1px, transparent 3px
+    );
+    pointer-events:none;
+    z-index:5;
+  }
+  body::after{
+    content:"";
+    position:fixed; inset:0;
+    background:radial-gradient(ellipse at center, rgba(150,20,25,0.08), transparent 70%);
+    pointer-events:none;
+    z-index:1;
+  }
+
+  .card{
+    position:relative;
+    z-index:2;
+    width:100%;
+    max-width:460px;
+    background:var(--bg-panel);
+    border:1px solid var(--line);
+    border-radius:6px;
+    overflow:hidden;
+    box-shadow:0 0 60px rgba(150,20,25,0.15);
+  }
+
+  .card-top{
+    padding:28px 26px 20px;
+    border-bottom:1px solid var(--line);
+    text-align:center;
+  }
+  .eyebrow{
+    font-size:11px;
+    letter-spacing:0.25em;
+    color:var(--muted);
+    text-transform:uppercase;
+  }
+  h1{
+    font-family:'Orbitron', sans-serif;
+    font-weight:900;
+    font-size:26px;
+    letter-spacing:0.04em;
+    color:var(--red-bright);
+    margin-top:10px;
+    text-shadow:0 0 18px rgba(230,57,70,0.45);
+    animation:flicker 5s infinite;
+  }
+  @keyframes flicker{
+    0%,96%,100%{opacity:1;}
+    97%{opacity:0.4;}
+    98%{opacity:1;}
+    99%{opacity:0.6;}
+  }
+  .sub{
+    margin-top:8px;
+    font-size:12.5px;
+    color:var(--muted);
+  }
+
+  .steps{ padding:22px 26px; }
+
+  .step{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    padding:14px 0;
+    border-bottom:1px solid var(--line);
+    opacity:0.4;
+    filter:grayscale(0.6);
+    transition:opacity 0.3s ease, filter 0.3s ease;
+  }
+  .step.active{ opacity:1; filter:grayscale(0); }
+  .step.done{ opacity:0.75; filter:grayscale(0.3); }
+  .step:last-child{ border-bottom:none; }
+
+  .step-num{
+    flex:0 0 30px;
+    height:30px;
+    border:1px solid var(--red);
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'Orbitron', sans-serif;
+    font-size:12px;
+    color:var(--red-bright);
+  }
+  .step.done .step-num{
+    background:var(--red);
+    color:#fff;
+  }
+
+  .step-body{ flex:1; }
+  .step-title{ font-size:13.5px; color:var(--text); }
+  .step-desc{ font-size:11px; color:var(--muted); margin-top:2px; }
+
+  .step-btn{
+    flex:0 0 auto;
+    background:transparent;
+    border:1px solid var(--red);
+    color:var(--red-bright);
+    font-family:'Share Tech Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.05em;
+    padding:8px 12px;
+    border-radius:4px;
+    cursor:pointer;
+    transition:background 0.2s ease, color 0.2s ease;
+    white-space:nowrap;
+  }
+  .step-btn:hover:not(:disabled){ background:var(--red); color:#fff; }
+  .step-btn:disabled{ opacity:0.3; cursor:not-allowed; }
+  .step.done .step-btn{ background:var(--red); color:#fff; }
+
+  .footer{
+    padding:22px 26px 26px;
+  }
+
+  .unlock-btn{
+    width:100%;
+    padding:14px;
+    background:var(--red);
+    border:none;
+    border-radius:4px;
+    color:#fff;
+    font-family:'Orbitron', sans-serif;
+    font-weight:700;
+    font-size:13px;
+    letter-spacing:0.1em;
+    cursor:pointer;
+    transition:background 0.2s ease, transform 0.1s ease;
+  }
+  .unlock-btn:hover:not(:disabled){ background:var(--red-bright); }
+  .unlock-btn:disabled{ background:#3a2020; color:#786060; cursor:not-allowed; }
+  .unlock-btn:active:not(:disabled){ transform:scale(0.98); }
+
+  .key-box{
+    display:none;
+    margin-top:16px;
+    background:#000;
+    border:1px solid var(--red);
+    border-radius:4px;
+    padding:16px;
+    text-align:center;
+  }
+  .key-box.show{ display:block; }
+  .key-label{
+    font-size:10px;
+    color:var(--muted);
+    letter-spacing:0.2em;
+    text-transform:uppercase;
+  }
+  .key-value{
+    margin-top:8px;
+    font-family:'Orbitron', sans-serif;
+    font-size:17px;
+    color:var(--red-bright);
+    letter-spacing:0.05em;
+    word-break:break-all;
+    min-height:24px;
+  }
+  .key-value.typing::after{
+    content:"▌";
+    animation:blink 0.8s infinite;
+  }
+  @keyframes blink{ 50%{ opacity:0; } }
+
+  .copy-btn{
+    margin-top:12px;
+    background:transparent;
+    border:1px solid var(--muted);
+    color:var(--text);
+    font-family:'Share Tech Mono', monospace;
+    font-size:11px;
+    padding:7px 14px;
+    border-radius:4px;
+    cursor:pointer;
+  }
+  .copy-btn:hover{ border-color:var(--red-bright); color:var(--red-bright); }
+
+  .status{
+    text-align:center;
+    margin-top:14px;
+    font-size:11px;
+    color:var(--muted);
+    min-height:14px;
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="card-top">
+    <div class="eyebrow">H4ll0 W0rld // access terminal</div>
+    <h1>SCRIPT HUB V2</h1>
+    <div class="sub">Selesaiin 3 langkah di bawah buat dapetin key kamu.</div>
+  </div>
+
+  <div class="steps">
+    <div class="step active" id="step-1">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <div class="step-title">Subscribe channel YouTube</div>
+        <div class="step-desc">Buka link, subscribe, balik ke sini.</div>
+      </div>
+      <button class="step-btn" onclick="doStep(1, 'https://www.youtube.com/PASTE_CHANNEL_DI_SINI')">BUKA</button>
+    </div>
+
+    <div class="step" id="step-2">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <div class="step-title">Join server Discord</div>
+        <div class="step-desc">Gabung server buat update script terbaru.</div>
+      </div>
+      <button class="step-btn" onclick="doStep(2, 'https://discord.gg/PASTE_INVITE_DI_SINI')" disabled>BUKA</button>
+    </div>
+
+    <div class="step" id="step-3">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <div class="step-title">Visit web H4ll0 W0rld</div>
+        <div class="step-desc">Liat-liat script hub lainnya.</div>
+      </div>
+      <button class="step-btn" onclick="doStep(3, 'https://PASTE_WEBSITE_DI_SINI')" disabled>BUKA</button>
+    </div>
+  </div>
+
+  <div class="footer">
+    <button class="unlock-btn" id="unlockBtn" onclick="unlockKey()" disabled>GET KEY</button>
+    <div class="status" id="statusText">0 / 3 task selesai</div>
+
+    <div class="key-box" id="keyBox">
+      <div class="key-label">Your Key</div>
+      <div class="key-value" id="keyValue"></div>
+      <button class="copy-btn" id="copyBtn" onclick="copyKey()" style="display:none;">COPY KEY</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const KEY = "H4ll0_hub_V2_2026";
+  let completed = { 1:false, 2:false, 3:false };
+
+  function updateStatus(){
+    const doneCount = Object.values(completed).filter(Boolean).length;
+    document.getElementById('statusText').textContent = doneCount + " / 3 task selesai";
+    document.getElementById('unlockBtn').disabled = doneCount < 3;
+  }
+
+  function doStep(n, url){
+    window.open(url, '_blank');
+
+    completed[n] = true;
+    const stepEl = document.getElementById('step-' + n);
+    stepEl.classList.remove('active');
+    stepEl.classList.add('done');
+    stepEl.querySelector('.step-btn').textContent = 'DONE';
+    stepEl.querySelector('.step-btn').disabled = true;
+
+    const next = document.getElementById('step-' + (n + 1));
+    if(next){
+      next.classList.add('active');
+      next.querySelector('.step-btn').disabled = false;
+    }
+    updateStatus();
+  }
+
+  function unlockKey(){
+    const keyBox = document.getElementById('keyBox');
+    const keyValue = document.getElementById('keyValue');
+    keyBox.classList.add('show');
+    document.getElementById('unlockBtn').disabled = true;
+    document.getElementById('unlockBtn').textContent = 'UNLOCKED';
+
+    // efek ngetik ala terminal
+    keyValue.classList.add('typing');
+    keyValue.textContent = '';
+    let i = 0;
+    const interval = setInterval(() => {
+      keyValue.textContent += KEY[i];
+      i++;
+      if(i >= KEY.length){
+        clearInterval(interval);
+        keyValue.classList.remove('typing');
+        document.getElementById('copyBtn').style.display = 'inline-block';
+      }
+    }, 45);
+  }
+
+  function copyKey(){
+    navigator.clipboard.writeText(KEY).then(() => {
+      const btn = document.getElementById('copyBtn');
+      const original = btn.textContent;
+      btn.textContent = 'COPIED!';
+      setTimeout(() => { btn.textContent = original; }, 1500);
+    });
+  }
+
+  updateStatus();
+</script>
+
+</body>
+</html>
